@@ -1,0 +1,1090 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Font2PNG Ultra Pro Studio v4</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@jaames/iro@5"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.359.0/dist/umd/lucide.min.js"></script>
+    <style>
+        body {
+            background-color: #090d16;
+            color: #f1f5f9;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+        /* Кастомный скроллбар */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+        
+        /* Шахматная сетка для прозрачного фона холста */
+        .alpha-bg {
+            background-image: linear-gradient(45deg, #1e293b 25%, transparent 25%), 
+                              linear-gradient(-45deg, #1e293b 25%, transparent 25%), 
+                              linear-gradient(45deg, transparent 75%, #1e293b 75%), 
+                              linear-gradient(-45deg, transparent 75%, #1e293b 75%);
+            background-size: 16px 16px;
+            background-position: 0 0, 0 8px, 8px -8px, -8px 0px;
+            background-color: #0f172a;
+        }
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+        .accordion-content.open {
+            max-height: 2000px;
+            transition: max-height 0.5s ease-in;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col overflow-hidden">
+
+    <header class="bg-slate-900/80 backdrop-blur-md border-b border-slate-800 px-6 py-4 flex justify-between items-center z-10">
+        <div class="flex items-center gap-3">
+            <div class="bg-indigo-600 p-2 rounded-lg text-white">
+                <i data-lucide="type"></i>
+            </div>
+            <div>
+                <h1 class="text-xl font-black tracking-wider bg-gradient-to-right from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">FONT2PNG ULTRA PRO v4</h1>
+                <p class="text-xs text-slate-400">Web Ultimate Studio Edition</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-2">
+            <button onclick="applyStyleTemplate('cyber')" class="px-3 py-1 text-xs bg-cyan-950 text-cyan-400 border border-cyan-800 rounded-md hover:bg-cyan-900 transition">Cyberpunk</button>
+            <button onclick="applyStyleTemplate('neon')" class="px-3 py-1 text-xs bg-pink-950 text-pink-400 border border-pink-800 rounded-md hover:bg-pink-900 transition">Neon</button>
+            <button onclick="applyStyleTemplate('gold')" class="px-3 py-1 text-xs bg-amber-950 text-amber-400 border border-amber-800 rounded-md hover:bg-amber-900 transition">Gold 3D</button>
+            <button onclick="applyStyleTemplate('pixel')" class="px-3 py-1 text-xs bg-emerald-950 text-emerald-400 border border-emerald-800 rounded-md hover:bg-emerald-900 transition">Retro Pixel</button>
+        </div>
+    </header>
+
+    <div class="flex-1 flex overflow-hidden flex-col md:flex-row">
+        
+        <aside class="w-full md:w-[450px] bg-slate-900/40 backdrop-blur-lg border-r border-slate-800 p-4 overflow-y-auto flex flex-col gap-4">
+            
+            <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-3">
+                <div class="flex gap-2">
+                    <button id="savePresetBtn" class="flex-1 bg-teal-600 hover:bg-teal-500 text-white font-bold py-2 px-3 rounded-lg text-xs flex items-center justify-center gap-2 transition shadow-lg shadow-teal-900/20">
+                        <i data-lucide="save" class="w-4 h-4"></i> СОХРАНИТЬ ПРЕСЕТ
+                    </button>
+                    <button id="loadPresetBtn" class="flex-1 bg-emerald-500 hover:bg-emerald-400 text-white font-bold py-2 px-3 rounded-lg text-xs flex items-center justify-center gap-2 transition shadow-lg shadow-emerald-900/20">
+                        <i data-lucide="folder-open" class="w-4 h-4"></i> ЗАГРУЗИТЬ ПРЕСЕТ
+                    </button>
+                </div>
+                <div class="mt-2 flex gap-2 items-center">
+                    <select id="presetSelect" class="flex-1 bg-slate-950 border border-slate-800 rounded-lg p-1.5 text-xs text-slate-300 focus:outline-none focus:border-indigo-500">
+                        <option value="default">Стандартный пресет</option>
+                    </select>
+                    <button id="deletePresetBtn" class="p-1.5 bg-rose-950 text-rose-400 border border-rose-900 rounded-lg hover:bg-rose-900" title="Удалить выбранный пресет"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                    <button id="resetAllBtn" class="p-1.5 bg-slate-800 text-slate-300 rounded-lg hover:bg-slate-700" title="Сбросить все настройки"><i data-lucide="refresh-cw" class="w-4 h-4"></i></button>
+                </div>
+            </div>
+
+            <div class="flex flex-col gap-2">
+                
+                <div class="border border-slate-800 rounded-xl bg-slate-900/60 overflow-hidden">
+                    <button class="w-full px-4 py-3 flex justify-between items-center bg-slate-900 font-semibold text-sm text-indigo-400 focus:outline-none" onclick="toggleAccordion(this)">
+                        <span class="flex items-center gap-2"><i data-lucide="case-sensitive" class="w-4 h-4"></i> 1. Шрифт и Текст</span>
+                        <i data-lucide="chevron-down" class="w-4 h-4 transform transition-transform"></i>
+                    </button>
+                    <div class="accordion-content open p-4 flex flex-col gap-4 border-t border-slate-800/60">
+                        <div class="flex gap-2">
+                            <label class="flex-1 bg-slate-950 border-2 border-dashed border-indigo-900/60 hover:border-indigo-500 p-3 rounded-xl cursor-pointer text-center group transition">
+                                <i data-lucide="upload-cloud" class="w-5 h-5 mx-auto text-indigo-400 group-hover:scale-110 transition"></i>
+                                <span class="text-xs block mt-1 text-slate-300 font-medium" id="fontFileName">Загрузить TTF / OTF</span>
+                                <input type="file" id="fontFile" accept=".ttf,.otf,.woff,.woff2" class="hidden">
+                            </label>
+                        </div>
+                        <div>
+                            <label class="text-xs text-slate-400 font-medium block mb-1">Или системный профиль шрифта</label>
+                            <select id="systemFont" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-sm text-slate-200">
+                                <option value="sans-serif">Sans-Serif System</option>
+                                <option value="Impact">Impact (Для мемов/жирный)</option>
+                                <option value="Arial Black">Arial Black</option>
+                                <option value="Times New Roman">Times New Roman</option>
+                                <option value="Courier New">Courier New (Пиксельный стиль)</option>
+                                <option value="Georgia">Georgia</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-xs text-slate-400 font-medium block mb-1">Поле ввода текста</label>
+                            <textarea id="textInput" rows="2" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-sm text-slate-100 focus:ring-1 focus:ring-indigo-500 focus:outline-none">LOL</textarea>
+                        </div>
+                        <div>
+                            <label class="text-xs text-slate-400 font-medium block mb-1">Выравнивание текста</label>
+                            <div class="grid grid-cols-3 gap-1 bg-slate-950 p-1 rounded-lg border border-slate-800">
+                                <button type="button" class="align-btn py-1.5 text-xs rounded font-bold bg-indigo-600 text-white" data-align="left">◀ Лево</button>
+                                <button type="button" class="align-btn py-1.5 text-xs rounded font-bold text-slate-400 hover:bg-slate-900" data-align="center">■ Центр</button>
+                                <button type="button" class="align-btn py-1.5 text-xs rounded font-bold text-slate-400 hover:bg-slate-900" data-align="right">Право ▶</button>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <label class="flex items-center gap-2 bg-slate-950 p-2 border border-slate-800 rounded-lg cursor-pointer text-xs">
+                                <input type="checkbox" id="onlyCaps" class="accent-indigo-500 w-4 h-4"> Только ЗАГЛАВНЫЕ
+                            </label>
+                            <label class="flex items-center gap-2 bg-slate-950 p-2 border border-slate-800 rounded-lg cursor-pointer text-xs">
+                                <input type="checkbox" id="verticalText" class="accent-indigo-500 w-4 h-4"> Вертикальный
+                            </label>
+                            <label class="flex items-center gap-2 bg-slate-950 p-2 border border-slate-800 rounded-lg cursor-pointer text-xs">
+                                <input type="checkbox" id="textFlipH" class="accent-indigo-500 w-4 h-4"> Отразить по X
+                            </label>
+                            <label class="flex items-center gap-2 bg-slate-950 p-2 border border-slate-800 rounded-lg cursor-pointer text-xs">
+                                <input type="checkbox" id="textFlipV" class="accent-indigo-500 w-4 h-4"> Отразить по Y
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="border border-slate-800 rounded-xl bg-slate-900/60 overflow-hidden">
+                    <button class="w-full px-4 py-3 flex justify-between items-center bg-slate-900 font-semibold text-sm text-indigo-400 focus:outline-none" onclick="toggleAccordion(this)">
+                        <span class="flex items-center gap-2"><i data-lucide="sliders" class="w-4 h-4"></i> 2. Размеры и Интервалы</span>
+                        <i data-lucide="chevron-down" class="w-4 h-4 transform transition-transform"></i>
+                    </button>
+                    <div class="accordion-content p-4 flex flex-col gap-4 border-t border-slate-800/60">
+                        <div>
+                            <div class="flex justify-between text-xs mb-1"><span class="text-slate-400">Размер шрифта (px)</span><span class="text-indigo-400 font-bold" id="fontSizeVal">100px</span></div>
+                            <input type="range" id="fontSize" min="10" max="400" value="100" class="w-full accent-indigo-500 bg-slate-950 h-1.5 rounded-lg appearance-none">
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-xs mb-1"><span class="text-slate-400">Наклон (Сдвиг кубический)</span><span class="text-indigo-400 font-bold" id="fontSkewVal">0.0</span></div>
+                            <input type="range" id="fontSkew" min="-2" max="2" step="0.1" value="0" class="w-full accent-indigo-500 bg-slate-950 h-1.5 rounded-lg appearance-none">
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-xs mb-1"><span class="text-slate-400">Интервал букв (Tracking)</span><span class="text-indigo-400 font-bold" id="letterSpacingVal">0px</span></div>
+                            <input type="range" id="letterSpacing" min="-20" max="100" value="0" class="w-full accent-indigo-500 bg-slate-950 h-1.5 rounded-lg appearance-none">
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-xs mb-1"><span class="text-slate-400">Интервал слов</span><span class="text-indigo-400 font-bold" id="wordSpacingVal">0px</span></div>
+                            <input type="range" id="wordSpacing" min="-20" max="100" value="0" class="w-full accent-indigo-500 bg-slate-950 h-1.5 rounded-lg appearance-none">
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-xs mb-1"><span class="text-slate-400">Высота строки (Межстрочный)</span><span class="text-indigo-400 font-bold" id="lineHeightVal">1.2</span></div>
+                            <input type="range" id="lineHeight" min="0.5" max="3" step="0.1" value="1.2" class="w-full accent-indigo-500 bg-slate-950 h-1.5 rounded-lg appearance-none">
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <div class="text-xs mb-1 text-slate-400">Масштаб X</div>
+                                <input type="range" id="scaleX" min="0.2" max="3" step="0.1" value="1" class="w-full accent-indigo-500">
+                            </div>
+                            <div>
+                                <div class="text-xs mb-1 text-slate-400">Масштаб Y</div>
+                                <input type="range" id="scaleY" min="0.2" max="3" step="0.1" value="1" class="w-full accent-indigo-500">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="border border-slate-800 rounded-xl bg-slate-900/60 overflow-hidden">
+                    <button class="w-full px-4 py-3 flex justify-between items-center bg-slate-900 font-semibold text-sm text-indigo-400 focus:outline-none" onclick="toggleAccordion(this)">
+                        <span class="flex items-center gap-2"><i data-lucide="palette" class="w-4 h-4"></i> 3. Цвета и Градиенты</span>
+                        <i data-lucide="chevron-down" class="w-4 h-4 transform transition-transform"></i>
+                    </button>
+                    <div class="accordion-content p-4 flex flex-col gap-4 border-t border-slate-800/60">
+                        <div>
+                            <label class="text-xs text-slate-400 font-medium block mb-1">Основной цвет текста</label>
+                            <div class="flex gap-2 items-center">
+                                <div onclick="openColorPicker('textColor')" id="textColorPreview" class="w-8 h-8 rounded-lg border border-slate-700 cursor-pointer shadow-inner bg-white"></div>
+                                <input type="text" id="textColor" value="#ffffff" class="flex-1 bg-slate-950 border border-slate-800 rounded-lg p-1.5 text-xs uppercase text-slate-200">
+                            </div>
+                        </div>
+                        <div class="bg-slate-950 p-3 border border-slate-800 rounded-xl">
+                            <label class="flex items-center gap-2 text-xs text-slate-300 font-bold mb-2 cursor-pointer">
+                                <input type="checkbox" id="useGradient" class="accent-indigo-500 w-4 h-4"> Включить градиент текста
+                            </label>
+                            <div id="gradientProps" class="opacity-40 pointer-events-none flex flex-col gap-3 transition-opacity duration-200">
+                                <div class="flex gap-2 items-center">
+                                    <div onclick="openColorPicker('textColor2')" id="textColor2Preview" class="w-8 h-8 rounded-lg border border-slate-700 cursor-pointer bg-cyan-400"></div>
+                                    <input type="text" id="textColor2" value="#00e5ff" class="flex-1 bg-slate-950 border border-slate-800 rounded-lg p-1.5 text-xs uppercase text-slate-200">
+                                </div>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <div>
+                                        <label class="text-[10px] text-slate-500 uppercase block">Тип градиента</label>
+                                        <select id="gradientType" class="w-full bg-slate-900 border border-slate-800 rounded p-1 text-xs text-slate-300">
+                                            <option value="linear">Линейный</option>
+                                            <option value="radial">Радиальный</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="text-[10px] text-slate-500 uppercase block">Угол (°)</label>
+                                        <input type="number" id="gradientAngle" value="90" min="0" max="360" class="w-full bg-slate-900 border border-slate-800 rounded p-1 text-xs text-slate-300">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-xs mb-1"><span class="text-slate-400">Непрозрачность текста</span><span id="textOpacityVal">100%</span></div>
+                            <input type="range" id="textOpacity" min="0" max="100" value="100" class="w-full accent-indigo-500">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="border border-slate-800 rounded-xl bg-slate-900/60 overflow-hidden">
+                    <button class="w-full px-4 py-3 flex justify-between items-center bg-slate-900 font-semibold text-sm text-indigo-400 focus:outline-none" onclick="toggleAccordion(this)">
+                        <span class="flex items-center gap-2"><i data-lucide="layers" class="w-4 h-4"></i> 4. Обводка и Тени</span>
+                        <i data-lucide="chevron-down" class="w-4 h-4 transform transition-transform"></i>
+                    </button>
+                    <div class="accordion-content p-4 flex flex-col gap-4 border-t border-slate-800/60">
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <div class="flex justify-between text-xs mb-1"><span class="text-slate-400">Обводка (px)</span><span id="strokeWidthVal">0px</span></div>
+                                <input type="range" id="strokeWidth" min="0" max="30" value="0" class="w-full accent-indigo-500">
+                            </div>
+                            <div>
+                                <label class="text-[11px] text-slate-400 block mb-1">Цвет обводки</label>
+                                <div class="flex gap-1 items-center">
+                                    <div onclick="openColorPicker('strokeColor')" id="strokeColorPreview" class="w-6 h-6 rounded border border-slate-700 cursor-pointer bg-black"></div>
+                                    <input type="text" id="strokeColor" value="#000000" class="w-full bg-slate-950 border border-slate-800 rounded p-1 text-[11px] uppercase text-slate-300">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-slate-950 p-2 border border-slate-800 rounded-lg">
+                            <label class="flex items-center gap-2 text-[11px] text-slate-400 cursor-pointer mb-1">
+                                <input type="checkbox" id="useStroke2" class="accent-indigo-500"> Вторая внешняя обводка
+                            </label>
+                            <div id="stroke2Props" class="opacity-40 pointer-events-none grid grid-cols-2 gap-2">
+                                <div>
+                                    <input type="range" id="strokeWidth2" min="0" max="40" value="0" class="w-full accent-indigo-500">
+                                </div>
+                                <div class="flex gap-1 items-center">
+                                    <div onclick="openColorPicker('strokeColor2')" id="strokeColor2Preview" class="w-5 h-5 rounded border border-slate-700 cursor-pointer bg-red-600"></div>
+                                    <input type="text" id="strokeColor2" value="#ff0000" class="w-full bg-slate-900 border border-slate-800 rounded p-0.5 text-[10px] uppercase text-slate-300">
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="text-xs text-slate-400 block mb-1">Форма углов обводки</label>
+                            <select id="strokeJoin" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-1.5 text-xs text-slate-300">
+                                <option value="round">Скруглённые (Round)</option>
+                                <option value="miter">Острые (Miter)</option>
+                                <option value="bevel">Срезанные (Bevel)</option>
+                            </select>
+                        </div>
+                        <div class="border-t border-slate-800/80 pt-3">
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <div class="flex justify-between text-xs mb-1"><span class="text-slate-400">Тень (Blur)</span><span id="shadowBlurVal">0px</span></div>
+                                    <input type="range" id="shadowBlur" min="0" max="50" value="0" class="w-full accent-indigo-500">
+                                </div>
+                                <div>
+                                    <label class="text-[11px] text-slate-400 block mb-1">Цвет тени</label>
+                                    <div class="flex gap-1 items-center">
+                                        <div onclick="openColorPicker('shadowColor')" id="shadowColorPreview" class="w-6 h-6 rounded border border-slate-700 cursor-pointer bg-black"></div>
+                                        <input type="text" id="shadowColor" value="#000000" class="w-full bg-slate-950 border border-slate-800 rounded p-1 text-[11px] uppercase text-slate-300">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2 mt-2">
+                                <div>
+                                    <label class="text-[10px] text-slate-500">Смещение X</label>
+                                    <input type="range" id="shadowOffsetX" min="-50" max="50" value="0" class="w-full accent-indigo-500">
+                                </div>
+                                <div>
+                                    <label class="text-[10px] text-slate-500">Смещение Y</label>
+                                    <input type="range" id="shadowOffsetY" min="-50" max="50" value="0" class="w-full accent-indigo-500">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-slate-950 p-2 border border-slate-800 rounded-lg">
+                            <label class="flex items-center gap-2 text-xs text-slate-300 cursor-pointer mb-2">
+                                <input type="checkbox" id="useGlow" class="accent-indigo-500"> Эффект Неонового Свечения (Glow)
+                            </label>
+                            <div id="glowProps" class="opacity-40 pointer-events-none flex flex-col gap-2">
+                                <input type="range" id="glowRadius" min="0" max="100" value="20" class="w-full accent-indigo-500">
+                                <div class="flex gap-2 items-center">
+                                    <div onclick="openColorPicker('glowColor')" id="glowColorPreview" class="w-6 h-6 rounded border border-slate-700 cursor-pointer bg-purple-500"></div>
+                                    <input type="text" id="glowColor" value="#a855f7" class="w-full bg-slate-900 border border-slate-800 rounded p-1 text-xs uppercase text-slate-300">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="border border-slate-800 rounded-xl bg-slate-900/60 overflow-hidden">
+                    <button class="w-full px-4 py-3 flex justify-between items-center bg-slate-900 font-semibold text-sm text-indigo-400 focus:outline-none" onclick="toggleAccordion(this)">
+                        <span class="flex items-center gap-2"><i data-lucide="sparkles" class="w-4 h-4"></i> 5. Ретро-текстуры и Фильтры</span>
+                        <i data-lucide="chevron-down" class="w-4 h-4 transform transition-transform"></i>
+                    </button>
+                    <div class="accordion-content p-4 flex flex-col gap-3 border-t border-slate-800/60">
+                        <label class="flex items-center gap-2 bg-slate-950 p-2 border border-slate-800 rounded-lg cursor-pointer text-xs">
+                            <input type="checkbox" id="retroTexture" class="accent-indigo-500 w-4 h-4"> Ретро-Текстура (PixelArt мозаика)
+                        </label>
+                        <div>
+                            <div class="flex justify-between text-xs mb-1"><span class="text-slate-400">Генератор цифрового шума (Зерно)</span><span id="noiseIntensityVal">0</span></div>
+                            <input type="range" id="noiseIntensity" min="0" max="100" value="0" class="w-full accent-indigo-500">
+                        </div>
+                        <div class="border-t border-slate-800/60 pt-2 grid grid-cols-2 gap-2 text-xs">
+                            <div>
+                                <label class="text-slate-500">Яркость (%)</label>
+                                <input type="range" id="filterBrightness" min="50" max="200" value="100" class="w-full accent-indigo-500">
+                            </div>
+                            <div>
+                                <label class="text-slate-500">Контраст (%)</label>
+                                <input type="range" id="filterContrast" min="50" max="200" value="100" class="w-full accent-indigo-500">
+                            </div>
+                            <div>
+                                <label class="text-slate-500">Насыщенность (%)</label>
+                                <input type="range" id="filterSaturation" min="0" max="200" value="100" class="w-full accent-indigo-500">
+                            </div>
+                            <div>
+                                <label class="text-slate-500">Инверсия цветов</label>
+                                <input type="range" id="filterInvert" min="0" max="100" value="0" class="w-full accent-indigo-500">
+                            </div>
+                        </div>
+                        <label class="flex items-center gap-2 bg-slate-950 p-2 border border-slate-800 rounded-lg cursor-pointer text-xs">
+                            <input type="checkbox" id="antiAliasing" checked class="accent-indigo-500 w-4 h-4"> Сглаживание пикселей (Anti-aliasing)
+                        </label>
+                    </div>
+                </div>
+
+                <div class="border border-slate-800 rounded-xl bg-slate-900/60 overflow-hidden">
+                    <button class="w-full px-4 py-3 flex justify-between items-center bg-slate-900 font-semibold text-sm text-indigo-400 focus:outline-none" onclick="toggleAccordion(this)">
+                        <span class="flex items-center gap-2"><i data-lucide="image" class="w-4 h-4"></i> 6. Свойства Холста и Экспорт</span>
+                        <i data-lucide="chevron-down" class="w-4 h-4 transform transition-transform"></i>
+                    </button>
+                    <div class="accordion-content p-4 flex flex-col gap-4 border-t border-slate-800/60">
+                        <label class="flex items-center gap-2 bg-slate-950 p-2 border border-slate-800 rounded-lg cursor-pointer text-xs">
+                            <input type="checkbox" id="autoSize" checked class="accent-indigo-500 w-4 h-4"> Автоматический размер под текст
+                        </label>
+                        <div id="manualSizeProps" class="hidden grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="text-[11px] text-slate-500">Ширина холста</label>
+                                <input type="number" id="canvasWidth" value="600" class="w-full bg-slate-950 border border-slate-800 rounded p-1 text-xs">
+                            </div>
+                            <div>
+                                <label class="text-[11px] text-slate-500">Высота холста</label>
+                                <input type="number" id="canvasHeight" value="250" class="w-full bg-slate-950 border border-slate-800 rounded p-1 text-xs">
+                            </div>
+                        </div>
+                        <div id="paddingProps" class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="text-[11px] text-slate-500">Отступы по X (px)</label>
+                                <input type="range" id="paddingX" min="0" max="150" value="30" class="w-full accent-indigo-500">
+                            </div>
+                            <div>
+                                <label class="text-[11px] text-slate-500">Отступы по Y (px)</label>
+                                <input type="range" id="paddingY" min="0" max="150" value="30" class="w-full accent-indigo-500">
+                            </div>
+                        </div>
+                        <div class="border-t border-slate-800/80 pt-3">
+                            <label class="flex items-center gap-2 bg-slate-950 p-2 border border-slate-800 rounded-lg cursor-pointer text-xs mb-2">
+                                <input type="checkbox" id="transparentBg" checked class="accent-indigo-500 w-4 h-4"> Прозрачный задний фон холста
+                            </label>
+                            <div id="bgColorProp" class="hidden flex gap-2 items-center">
+                                <div onclick="openColorPicker('bgColor')" id="bgColorPreview" class="w-8 h-8 rounded-lg border border-slate-700 cursor-pointer bg-slate-800"></div>
+                                <input type="text" id="bgColor" value="#121824" class="flex-1 bg-slate-950 border border-slate-800 rounded-lg p-1.5 text-xs uppercase text-slate-200">
+                            </div>
+                        </div>
+                        <div class="border-t border-slate-800/80 pt-3 grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="text-[11px] text-slate-500">Формат файла</label>
+                                <select id="exportFormat" class="w-full bg-slate-950 border border-slate-800 rounded p-1 text-xs text-slate-300">
+                                    <option value="image/png">PNG Image</option>
+                                    <option value="image/jpeg">JPEG Image</option>
+                                    <option value="image/webp">WebP Image</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="text-[11px] text-slate-500">Качество сжатия</label>
+                                <input type="range" id="exportQuality" min="1" max="100" value="95" class="w-full accent-indigo-500">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </aside>
+
+        <main class="flex-1 bg-slate-950 p-6 flex flex-col justify-between items-center relative overflow-hidden">
+            
+            <div class="absolute top-4 left-6 text-xs text-slate-500 pointer-events-none flex gap-4">
+                <span>Разрешение холста: <strong id="canvasResolution" class="text-slate-300">0x0 px</strong></span>
+            </div>
+
+            <div class="flex-1 w-full flex items-center justify-center overflow-auto p-4">
+                <div class="alpha-bg p-2 rounded-xl shadow-2xl border border-slate-800 max-w-full max-h-full">
+                    <canvas id="studioCanvas" class="rounded shadow-lg block"></canvas>
+                </div>
+            </div>
+
+            <div class="w-full max-w-xl bg-slate-900/90 border border-slate-800 rounded-2xl p-4 flex gap-3 shadow-2xl backdrop-blur-md">
+                <button id="copyClipboardBtn" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-100 font-bold py-3 px-4 rounded-xl text-sm flex items-center justify-center gap-2 transition active:scale-95 border border-slate-700">
+                    <i data-lucide="copy"></i> Скопировать в буфер
+                </button>
+                <button id="downloadBtn" class="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-extrabold py-3 px-4 rounded-xl text-sm flex items-center justify-center gap-2 transition active:scale-95 shadow-lg shadow-indigo-500/20">
+                    <i data-lucide="download"></i> Скачать изображение
+                </button>
+            </div>
+        </main>
+    </div>
+
+    <div id="colorPickerModal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50">
+        <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl w-80 shadow-2xl flex flex-col gap-4 animate-in fade-in zoom-in-95 duration-150">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+                <h3 class="text-sm font-bold text-slate-200 flex items-center gap-2"><i data-lucide="aperture" class="w-4 h-4 text-indigo-400"></i> Палитра цветов</h3>
+                <button onclick="closeColorPicker()" class="text-slate-400 hover:text-slate-100"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            
+            <div id="iroPickerContainer" class="flex justify-center py-2"></div>
+
+            <div class="grid grid-cols-4 gap-1 text-center text-xs">
+                <div>
+                    <span class="text-[10px] text-slate-500 uppercase block">Hex</span>
+                    <input type="text" id="modalHexInput" class="w-full bg-slate-950 border border-slate-800 rounded p-1 text-slate-300 text-center uppercase text-[11px]">
+                </div>
+                <div>
+                    <span class="text-[10px] text-rose-500 uppercase block">R</span>
+                    <input type="number" id="modalRInput" min="0" max="255" class="w-full bg-slate-950 border border-slate-800 rounded p-1 text-slate-300 text-center">
+                </div>
+                <div>
+                    <span class="text-[10px] text-emerald-500 uppercase block">G</span>
+                    <input type="number" id="modalGInput" min="0" max="255" class="w-full bg-slate-950 border border-slate-800 rounded p-1 text-slate-300 text-center">
+                </div>
+                <div>
+                    <span class="text-[10px] text-sky-500 uppercase block">B</span>
+                    <input type="number" id="modalBInput" min="0" max="255" class="w-full bg-slate-950 border border-slate-800 rounded p-1 text-slate-300 text-center">
+                </div>
+            </div>
+
+            <div>
+                <span class="text-[11px] text-slate-400 block mb-1.5">Быстрые пресеты цвета:</span>
+                <div class="grid grid-cols-8 gap-2">
+                    <div onclick="selectQuickColor('#000000')" class="w-6 h-6 rounded-full bg-black border border-slate-700 cursor-pointer hover:scale-110 transition"></div>
+                    <div onclick="selectQuickColor('#ffffff')" class="w-6 h-6 rounded-full bg-white border border-slate-700 cursor-pointer hover:scale-110 transition"></div>
+                    <div onclick="selectQuickColor('#be123c')" class="w-6 h-6 rounded-full bg-rose-700 border border-slate-700 cursor-pointer hover:scale-110 transition"></div>
+                    <div onclick="selectQuickColor('#06b6d4')" class="w-6 h-6 rounded-full bg-cyan-500 border border-slate-700 cursor-pointer hover:scale-110 transition"></div>
+                    <div onclick="selectQuickColor('#22c55e')" class="w-6 h-6 rounded-full bg-emerald-500 border border-slate-700 cursor-pointer hover:scale-110 transition"></div>
+                    <div onclick="selectQuickColor('#eab308')" class="w-6 h-6 rounded-full bg-yellow-500 border border-slate-700 cursor-pointer hover:scale-110 transition"></div>
+                    <div onclick="selectQuickColor('#ea580c')" class="w-6 h-6 rounded-full bg-orange-600 border border-slate-700 cursor-pointer hover:scale-110 transition"></div>
+                    <div onclick="selectQuickColor('#a855f7')" class="w-6 h-6 rounded-full bg-purple-500 border border-slate-700 cursor-pointer hover:scale-110 transition"></div>
+                </div>
+            </div>
+
+            <button onclick="closeColorPicker()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 rounded-xl text-xs uppercase tracking-wide transition shadow-lg shadow-indigo-900/30">Применить цвет</button>
+        </div>
+    </div>
+
+    <script>
+        // Инициализация графических иконок Lucide
+        lucide.createIcons();
+
+        const canvas = document.getElementById('studioCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Все селекторы элементов управления
+        const fontFileInput = document.getElementById('fontFile');
+        const fontFileNameLabel = document.getElementById('fontFileName');
+        const systemFontSelect = document.getElementById('systemFont');
+        const textInput = document.getElementById('textInput');
+        const alignButtons = document.querySelectorAll('.align-btn');
+        const onlyCapsCheck = document.getElementById('onlyCaps');
+        const verticalTextCheck = document.getElementById('verticalText');
+        const textFlipHCheck = document.getElementById('textFlipH');
+        const textFlipVCheck = document.getElementById('textFlipV');
+
+        // Диапазоны и Слайдеры
+        const fontSizeInput = document.getElementById('fontSize');
+        const fontSkewInput = document.getElementById('fontSkew');
+        const letterSpacingInput = document.getElementById('letterSpacing');
+        const wordSpacingInput = document.getElementById('wordSpacing');
+        const lineHeightInput = document.getElementById('lineHeight');
+        const scaleXInput = document.getElementById('scaleX');
+        const scaleYInput = document.getElementById('scaleY');
+
+        // Стили, Градиент, Обводки, Тени
+        const useGradientCheck = document.getElementById('useGradient');
+        const gradientTypeSelect = document.getElementById('gradientType');
+        const gradientAngleInput = document.getElementById('gradientAngle');
+        const textOpacityInput = document.getElementById('textOpacity');
+        const strokeWidthInput = document.getElementById('strokeWidth');
+        const useStroke2Check = document.getElementById('useStroke2');
+        const strokeWidth2Input = document.getElementById('strokeWidth2');
+        const strokeJoinSelect = document.getElementById('strokeJoin');
+        const shadowBlurInput = document.getElementById('shadowBlur');
+        const shadowOffsetXInput = document.getElementById('shadowOffsetX');
+        const shadowOffsetYInput = document.getElementById('shadowOffsetY');
+        const useGlowCheck = document.getElementById('useGlow');
+        const glowRadiusInput = document.getElementById('glowRadius');
+
+        // Текстуры и Фильтры
+        const retroTextureCheck = document.getElementById('retroTexture');
+        const noiseIntensityInput = document.getElementById('noiseIntensity');
+        const filterBrightnessInput = document.getElementById('filterBrightness');
+        const filterContrastInput = document.getElementById('filterContrast');
+        const filterSaturationInput = document.getElementById('filterSaturation');
+        const filterInvertInput = document.getElementById('filterInvert');
+        const antiAliasingCheck = document.getElementById('antiAliasing');
+
+        // Свойства Холста
+        const autoSizeCheck = document.getElementById('autoSize');
+        const canvasWidthInput = document.getElementById('canvasWidth');
+        const canvasHeightInput = document.getElementById('canvasHeight');
+        const paddingXInput = document.getElementById('paddingX');
+        const paddingYInput = document.getElementById('paddingY');
+        const transparentBgCheck = document.getElementById('transparentBg');
+        const exportFormatSelect = document.getElementById('exportFormat');
+        const exportQualityInput = document.getElementById('exportQuality');
+
+        // Глобальные переменные движка
+        let customFontFamilyName = null;
+        let currentTextAlign = 'left';
+        let currentActiveColorId = null; 
+        let iroPickerInstance = null;
+
+        // Палитра Iro.js инициализация
+        window.addEventListener('DOMContentLoaded', () => {
+            iroPickerInstance = new iro.ColorPicker("#iroPickerContainer", {
+                width: 180,
+                layout: [
+                    { component: iro.ui.Wheel, options: {} },
+                    { component: iro.ui.Slider, options: { sliderType: 'value' } }
+                ]
+            });
+
+            // Синхронизация колеса с полями ручного ввода модального окна
+            iroPickerInstance.on('color:change', function(color) {
+                if (!currentActiveColorId) return;
+                document.getElementById(currentActiveColorId).value = color.hexString;
+                document.getElementById(currentActiveColorId + 'Preview').style.backgroundColor = color.hexString;
+                
+                document.getElementById('modalHexInput').value = color.hexString;
+                document.getElementById('modalRInput').value = color.rgb.r;
+                document.getElementById('modalGInput').value = color.rgb.g;
+                document.getElementById('modalBInput').value = color.rgb.b;
+                renderStudio();
+            });
+
+            // Навешивание событий на поля ввода внутри модалки
+            document.getElementById('modalHexInput').addEventListener('input', (e) => {
+                if(e.target.value.length === 7) iroPickerInstance.setColor(e.target.value);
+            });
+            ['modalRInput', 'modalGInput', 'modalBInput'].forEach(id => {
+                document.getElementById(id).addEventListener('input', () => {
+                    const r = parseInt(document.getElementById('modalRInput').value) || 0;
+                    const g = parseInt(document.getElementById('modalGInput').value) || 0;
+                    const b = parseInt(document.getElementById('modalBInput').value) || 0;
+                    iroPickerInstance.setColor({r, g, b});
+                });
+            });
+
+            loadPresetsList();
+            setTimeout(renderStudio, 200);
+        });
+
+        // Функция открытия умной палитры
+        function openColorPicker(inputId) {
+            currentActiveColorId = inputId;
+            const currentHex = document.getElementById(inputId).value;
+            document.getElementById('colorPickerModal').classList.remove('hidden');
+            iroPickerInstance.setColor(currentHex);
+        }
+
+        function closeColorPicker() {
+            document.getElementById('colorPickerModal').classList.add('hidden');
+            currentActiveColorId = null;
+        }
+
+        function selectQuickColor(hex) {
+            iroPickerInstance.setColor(hex);
+        }
+
+        // Переключение аккордеона категорий настроек
+        function toggleAccordion(button) {
+            const content = button.nextElementSibling;
+            const icon = button.querySelector('[data-lucide="chevron-down"]');
+            content.classList.toggle('open');
+            if(content.classList.contains('open')) {
+                icon.style.transform = 'rotate(180deg)';
+            } else {
+                icon.style.transform = 'rotate(0deg)';
+            }
+        }
+
+        // Обработка кликов выравнивания
+        alignButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                alignButtons.forEach(b => b.className = "align-btn py-1.5 text-xs rounded font-bold text-slate-400 hover:bg-slate-900");
+                btn.className = "align-btn py-1.5 text-xs rounded font-bold bg-indigo-600 text-white";
+                currentTextAlign = btn.getAttribute('data-align');
+                renderStudio();
+            });
+        });
+
+        // Слушатели изменений для автоматического обновления рендера
+        const liveElements = [
+            textInput, onlyCapsCheck, verticalTextCheck, textFlipHCheck, textFlipVCheck,
+            fontSizeInput, fontSkewInput, letterSpacingInput, wordSpacingInput, lineHeightInput,
+            scaleXInput, scaleYInput, useGradientCheck, gradientTypeSelect, gradientAngleInput,
+            textOpacityInput, strokeWidthInput, useStroke2Check, strokeWidth2Input, strokeJoinSelect,
+            shadowBlurInput, shadowOffsetXInput, shadowOffsetYInput, useGlowCheck, glowRadiusInput,
+            retroTextureCheck, noiseIntensityInput, filterBrightnessInput, filterContrastInput,
+            filterSaturationInput, filterInvertInput, antiAliasingCheck, autoSizeCheck,
+            canvasWidthInput, canvasHeightInput, paddingXInput, paddingYInput, transparentBgCheck,
+            exportFormatSelect, exportQualityInput
+        ];
+        
+        liveElements.forEach(el => el.addEventListener('input', renderStudio));
+        systemFontSelect.addEventListener('change', () => {
+            customFontFamilyName = null;
+            fontFileNameLabel.textContent = "Загрузить TTF / OTF";
+            renderStudio();
+        });
+
+        // Загрузка файла шрифта пользователем
+        fontFileInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            fontFileNameLabel.textContent = file.name;
+            const uniqueName = 'UserFont_' + Date.now();
+            const buffer = await file.arrayBuffer();
+            try {
+                const fontFace = new FontFace(uniqueName, buffer);
+                const loaded = await fontFace.load();
+                document.fonts.add(loaded);
+                customFontFamilyName = uniqueName;
+                renderStudio();
+            } catch (err) {
+                alert('Не удалось прочесть файл шрифта.');
+            }
+        });
+
+        // ГЛАВНЫЙ ДВИЖОК РЕНДЕРИНГА НА ХОЛСТЕ CANVAS
+        function renderStudio() {
+            // Текстовые индикаторы числовых значений ползунков
+            document.getElementById('fontSizeVal').textContent = fontSizeInput.value + 'px';
+            document.getElementById('fontSkewVal').textContent = parseFloat(fontSkewInput.value).toFixed(1);
+            document.getElementById('letterSpacingVal').textContent = letterSpacingInput.value + 'px';
+            document.getElementById('wordSpacingVal').textContent = wordSpacingInput.value + 'px';
+            document.getElementById('lineHeightVal').textContent = lineHeightInput.value;
+            document.getElementById('strokeWidthVal').textContent = strokeWidthInput.value + 'px';
+            document.getElementById('shadowBlurVal').textContent = shadowBlurInput.value + 'px';
+            document.getElementById('textOpacityVal').textContent = textOpacityInput.value + '%';
+            document.getElementById('noiseIntensityVal').textContent = noiseIntensityInput.value;
+
+            // Контроль видимости связанных полей зависимых функций
+            document.getElementById('gradientProps').style.opacity = useGradientCheck.checked ? '1' : '0.4';
+            document.getElementById('gradientProps').style.pointerEvents = useGradientCheck.checked ? 'auto' : 'none';
+            document.getElementById('stroke2Props').style.opacity = useStroke2Check.checked ? '1' : '0.4';
+            document.getElementById('stroke2Props').style.pointerEvents = useStroke2Check.checked ? 'auto' : 'none';
+            document.getElementById('glowProps').style.opacity = useGlowCheck.checked ? '1' : '0.4';
+            document.getElementById('glowProps').style.pointerEvents = useGlowCheck.checked ? 'auto' : 'none';
+            document.getElementById('manualSizeProps').style.display = autoSizeCheck.checked ? 'none' : 'grid';
+            document.getElementById('paddingProps').style.display = autoSizeCheck.checked ? 'grid' : 'none';
+            document.getElementById('bgColorProp').style.display = transparentBgCheck.checked ? 'none' : 'flex';
+
+            // Настройка текста и обработка Caps
+            let rawText = textInput.value || '';
+            if (onlyCapsCheck.checked) rawText = rawText.toUpperCase();
+            
+            // Обработка вертикального текста
+            let lines = [];
+            if (verticalTextCheck.checked) {
+                // Превращаем каждый символ в отдельную строку, сохраняя абзацы пробелами
+                let letters = rawText.split('');
+                letters.forEach(char => {
+                    if (char === '\n') lines.push('');
+                    else lines.push(char);
+                });
+            } else {
+                lines = rawText.split('\n');
+            }
+
+            const size = parseInt(fontSizeInput.value);
+            const fontName = customFontFamilyName ? customFontFamilyName : systemFontSelect.value;
+            
+            ctx.font = `${size}px ${fontName}`;
+            ctx.textBaseline = 'alphabetic';
+            ctx.imageSmoothingEnabled = antiAliasingCheck.checked;
+
+            // Расчет геометрии холста
+            let finalWidth = parseInt(canvasWidthInput.value) || 400;
+            let finalHeight = parseInt(canvasHeightInput.value) || 200;
+            const px = parseInt(paddingXInput.value);
+            const py = parseInt(paddingYInput.value);
+
+            // Интеграция межбуквенного интервала и масштабирования
+            ctx.letterSpacing = `${letterSpacingInput.value}px`;
+            ctx.wordSpacing = `${wordSpacingInput.value}px`;
+
+            const computedLineHeight = size * parseFloat(lineHeightInput.value);
+
+            if (autoSizeCheck.checked) {
+                let maxLineWidth = 0;
+                lines.forEach(line => {
+                    let w = ctx.measureText(line).width;
+                    if(w > maxLineWidth) maxLineWidth = w;
+                });
+                // Учитываем коэффициенты масштабирования X/Y
+                finalWidth = Math.ceil(maxLineWidth * parseFloat(scaleXInput.value)) + (px * 2) + parseInt(strokeWidthInput.value)*2 + 20;
+                finalHeight = Math.ceil(lines.length * computedLineHeight * parseFloat(scaleYInput.value)) + (py * 2) + 20;
+            }
+
+            if(finalWidth < 50) finalWidth = 50;
+            if(finalHeight < 50) finalHeight = 50;
+
+            canvas.width = finalWidth;
+            canvas.height = finalHeight;
+            document.getElementById('canvasResolution').textContent = `${finalWidth} x ${finalHeight} px`;
+
+            // Сброс контекста после изменения размеров холста
+            ctx.font = `${size}px ${fontName}`;
+            ctx.textBaseline = 'top';
+            ctx.letterSpacing = `${letterSpacingInput.value}px`;
+            ctx.wordSpacing = `${wordSpacingInput.value}px`;
+            ctx.imageSmoothingEnabled = antiAliasingCheck.checked;
+            ctx.lineJoin = strokeJoinSelect.value;
+
+            // Применение комплексных фильтров постобработки
+            ctx.filter = `brightness(${filterBrightnessInput.value}%) contrast(${filterContrastInput.value}%) saturate(${filterSaturationInput.value}%) invert(${filterInvertInput.value}%)`;
+
+            // Рендер фона
+            if (transparentBgCheck.checked) {
+                ctx.clearRect(0, 0, finalWidth, finalHeight);
+            } else {
+                ctx.fillStyle = document.getElementById('bgColor').value;
+                ctx.fillRect(0, 0, finalWidth, finalHeight);
+            }
+
+            // Рендер текста
+            ctx.save();
+
+            // Зеркальное отображение (Flip)
+            let scaleX = parseFloat(scaleXInput.value);
+            let scaleY = parseFloat(scaleYInput.value);
+            let transX = 0, transY = 0;
+            if (textFlipHCheck.checked) { scaleX = -scaleX; transX = finalWidth; }
+            if (textFlipVCheck.checked) { scaleY = -scaleY; transY = finalHeight; }
+            ctx.translate(transX, transY);
+            ctx.scale(scaleX, scaleY);
+
+            // Кубический наклон текста (Имитация сложного 3D наклона)
+            const skew = parseFloat(fontSkewInput.value);
+            ctx.transform(1, 0, skew, 1, 0, 0);
+
+            // Формирование цвета заполнения (Сплошной или Градиент)
+            let fillStyle = document.getElementById('textColor').value;
+            if (useGradientCheck.checked) {
+                const gType = gradientTypeSelect.value;
+                if (gType === 'linear') {
+                    let angleRad = (parseInt(gradientAngleInput.value) * Math.PI) / 180;
+                    let r = Math.sqrt(finalWidth*finalWidth + finalHeight*finalHeight) / 2;
+                    let cx = finalWidth / 2, cy = finalHeight / 2;
+                    let grad = ctx.createLinearGradient(cx - Math.cos(angleRad)*r, cy - Math.sin(angleRad)*r, cx + Math.cos(angleRad)*r, cy + Math.sin(angleRad)*r);
+                    grad.addColorStop(0, document.getElementById('textColor').value);
+                    grad.addColorStop(1, document.getElementById('textColor2').value);
+                    fillStyle = grad;
+                } else {
+                    let grad = ctx.createRadialGradient(finalWidth/2, finalHeight/2, 5, finalWidth/2, finalHeight/2, Math.max(finalWidth, finalHeight)/1.5);
+                    grad.addColorStop(0, document.getElementById('textColor').value);
+                    grad.addColorStop(1, document.getElementById('textColor2').value);
+                    fillStyle = grad;
+                }
+            }
+            ctx.fillStyle = fillStyle;
+            ctx.globalAlpha = parseInt(textOpacityInput.value) / 100;
+
+            // Настройка Стандартной Тени
+            if (parseInt(shadowBlurInput.value) > 0) {
+                ctx.shadowBlur = parseInt(shadowBlurInput.value);
+                ctx.shadowColor = document.getElementById('shadowColor').value;
+                ctx.shadowOffsetX = parseInt(shadowOffsetXInput.value);
+                ctx.shadowOffsetY = parseInt(shadowOffsetYInput.value);
+            } else {
+                ctx.shadowBlur = 0;
+                ctx.shadowOffsetX = 0;
+                ctx.shadowOffsetY = 0;
+            }
+
+            // Многослойная Отрисовка Текста (Обводки + Контуры)
+            let startY = autoSizeCheck.checked ? py : (finalHeight / 2) - ((lines.length * computedLineHeight) / 2);
+            
+            lines.forEach((line, index) => {
+                let currentW = ctx.measureText(line).width;
+                let startX = px;
+                if (currentTextAlign === 'center') startX = (finalWidth / 2) - (currentW / 2);
+                if (currentTextAlign === 'right') startX = finalWidth - currentW - px;
+
+                let posY = startY + (index * computedLineHeight);
+
+                // 1. Слой неонового свечения (Отрисовывается под обводками)
+                if (useGlowCheck.checked) {
+                    ctx.save();
+                    ctx.shadowBlur = parseInt(glowRadiusInput.value);
+                    ctx.shadowColor = document.getElementById('glowColor').value;
+                    ctx.fillStyle = document.getElementById('glowColor').value;
+                    ctx.fillText(line, startX, posY);
+                    ctx.fillText(line, startX, posY);
+                    ctx.restore();
+                }
+
+                // 2. Слой второй внешней обводки
+                if (useStroke2Check.checked && parseInt(strokeWidth2Input.value) > 0) {
+                    ctx.strokeStyle = document.getElementById('strokeColor2').value;
+                    ctx.lineWidth = parseInt(strokeWidthInput.value) + parseInt(strokeWidth2Input.value);
+                    ctx.strokeText(line, startX, posY);
+                }
+
+                // 3. Слой основной первой обводки
+                if (parseInt(strokeWidthInput.value) > 0) {
+                    ctx.strokeStyle = document.getElementById('strokeColor').value;
+                    ctx.lineWidth = parseInt(strokeWidthInput.value);
+                    ctx.strokeText(line, startX, posY);
+                }
+
+                // 4. Финальный слой заполнения цветом / градиентом
+                ctx.fillText(line, startX, posY);
+            });
+
+            ctx.restore();
+
+            // Эффект Ретро Пикселизации (Downscale -> Upscale)
+            if (retroTextureCheck.checked) {
+                let scale = 0.15; // Сила сжатия пикселей
+                let w = Math.ceil(finalWidth * scale);
+                let h = Math.ceil(finalHeight * scale);
+                
+                let tempCanvas = document.createElement('canvas');
+                tempCanvas.width = w;
+                tempCanvas.height = h;
+                let tCtx = tempCanvas.getContext('2d');
+                tCtx.imageSmoothingEnabled = false;
+                tCtx.drawImage(canvas, 0, 0, finalWidth, finalHeight, 0, 0, w, h);
+                
+                ctx.clearRect(0, 0, finalWidth, finalHeight);
+                ctx.save();
+                ctx.imageSmoothingEnabled = false;
+                ctx.drawImage(tempCanvas, 0, 0, w, h, 0, 0, finalWidth, finalHeight);
+                ctx.restore();
+            }
+
+            // Попиксельный фильтр шума / зернистости (Зерно как в ретро плагинах)
+            const noiseVal = parseInt(noiseIntensityInput.value);
+            if (noiseVal > 0) {
+                let imgData = ctx.getImageData(0, 0, finalWidth, finalHeight);
+                let data = imgData.data;
+                for (let i = 0; i < data.length; i += 4) {
+                    if (data[i + 3] > 10) { // Наносим зерно только на видимый текст
+                        let noise = (Math.random() - 0.5) * noiseVal * 2;
+                        data[i] = Math.min(255, Math.max(0, data[i] + noise));
+                        data[i + 1] = Math.min(255, Math.max(0, data[i + 1] + noise));
+                        data[i + 2] = Math.min(255, Math.max(0, data[i + 2] + noise));
+                    }
+                }
+                ctx.putImageData(imgData, 0, 0);
+            }
+        }
+
+        // ШАБЛОНЫ СТИЛЕЙ В 1 КЛИК
+        function applyStyleTemplate(type) {
+            resetToDefaultValues();
+            if (type === 'cyber') {
+                textInput.value = "CYBERPUNK";
+                systemFontSelect.value = "Impact";
+                document.getElementById('textColor').value = "#ffff00";
+                useGradientCheck.checked = true;
+                document.getElementById('textColor2').value = "#ff0055";
+                gradientAngleInput.value = "45";
+                strokeWidthInput.value = "5";
+                document.getElementById('strokeColor').value = "#000000";
+                useGlowCheck.checked = true;
+                glowRadiusInput.value = "25";
+                document.getElementById('glowColor').value = "#00ffff";
+                fontSkewInput.value = "-0.2";
+                letterSpacingInput.value = "6";
+            } else if (type === 'neon') {
+                textInput.value = "NEON GLOW";
+                systemFontSelect.value = "sans-serif";
+                document.getElementById('textColor').value = "#ffffff";
+                strokeWidthInput.value = "3";
+                document.getElementById('strokeColor').value = "#da0266";
+                useGlowCheck.checked = true;
+                glowRadiusInput.value = "40";
+                document.getElementById('glowColor').value = "#ff007f";
+                letterSpacingInput.value = "4";
+            } else if (type === 'gold') {
+                textInput.value = "GOLD 3D";
+                systemFontSelect.value = "Times New Roman";
+                document.getElementById('textColor').value = "#ffe066";
+                useGradientCheck.checked = true;
+                document.getElementById('textColor2').value = "#664d00";
+                gradientAngleInput.value = "90";
+                strokeWidthInput.value = "2";
+                document.getElementById('strokeColor').value = "#332600";
+                shadowBlurInput.value = "15";
+                shadowOffsetXInput.value = "8";
+                shadowOffsetYInput.value = "8";
+                document.getElementById('shadowColor').value = "#110c00";
+            } else if (type === 'pixel') {
+                textInput.value = "PIXEL CRAFT";
+                systemFontSelect.value = "Courier New";
+                document.getElementById('textColor').value = "#22c55e";
+                retroTextureCheck.checked = true;
+                strokeWidthInput.value = "4";
+                document.getElementById('strokeColor').value = "#052e16";
+                onlyCapsCheck.checked = true;
+            }
+            // Синхронизируем цвет квадратиков превью
+            ['textColor', 'textColor2', 'strokeColor', 'strokeColor2', 'shadowColor', 'glowColor', 'bgColor'].forEach(id => {
+                document.getElementById(id+'Preview').style.backgroundColor = document.getElementById(id).value;
+            });
+            renderStudio();
+        }
+
+        function resetToDefaultValues() {
+            onlyCapsCheck.checked = false;
+            verticalTextCheck.checked = false;
+            textFlipHCheck.checked = false;
+            textFlipVCheck.checked = false;
+            fontSizeInput.value = "100";
+            fontSkewInput.value = "0";
+            letterSpacingInput.value = "0";
+            wordSpacingInput.value = "0";
+            lineHeightInput.value = "1.2";
+            scaleXInput.value = "1";
+            scaleYInput.value = "1";
+            useGradientCheck.checked = false;
+            textOpacityInput.value = "100";
+            strokeWidthInput.value = "0";
+            useStroke2Check.checked = false;
+            strokeWidth2Input.value = "0";
+            shadowBlurInput.value = "0";
+            shadowOffsetXInput.value = "0";
+            shadowOffsetYInput.value = "0";
+            useGlowCheck.checked = false;
+            retroTextureCheck.checked = false;
+            noiseIntensityInput.value = "0";
+            filterBrightnessInput.value = "100";
+            filterContrastInput.value = "100";
+            filterSaturationInput.value = "100";
+            filterInvertInput.value = "0";
+            autoSizeCheck.checked = true;
+            transparentBgCheck.checked = true;
+        }
+
+        // СБРОС И РАБОТА С ЛОКАЛЬНЫМИ ПРЕСЕТАМИ (Local Storage)
+        document.getElementById('resetAllBtn').addEventListener('click', () => {
+            resetToDefaultValues();
+            textInput.value = "LOL";
+            systemFontSelect.value = "sans-serif";
+            customFontFamilyName = null;
+            fontFileNameLabel.textContent = "Загрузить TTF / OTF";
+            renderStudio();
+        });
+
+        document.getElementById('savePresetBtn').addEventListener('click', () => {
+            const name = prompt("Введите имя пресета:", "Мой пресет " + new Date().toLocaleTimeString());
+            if(!name) return;
+            
+            const presetData = {};
+            liveElements.forEach(el => {
+                if(el.type === 'checkbox') presetData[el.id] = el.checked;
+                else presetData[el.id] = el.value;
+            });
+            presetData['currentTextAlign'] = currentTextAlign;
+            presetData['customFontFamilyName'] = customFontFamilyName;
+            
+            // Также сохраняем значения цветовых полей текстовых инпутов
+            ['textColor', 'textColor2', 'strokeColor', 'strokeColor2', 'shadowColor', 'glowColor', 'bgColor'].forEach(id => {
+                presetData[id] = document.getElementById(id).value;
+            });
+
+            let saved = JSON.parse(localStorage.getItem('f2p_presets') || '{}');
+            saved[name] = presetData;
+            localStorage.setItem('f2p_presets', JSON.stringify(saved));
+            loadPresetsList();
+            document.getElementById('presetSelect').value = name;
+        });
+
+        document.getElementById('loadPresetBtn').addEventListener('click', () => {
+            const name = document.getElementById('presetSelect').value;
+            if(name === 'default') return;
+            let saved = JSON.parse(localStorage.getItem('f2p_presets') || '{}');
+            const data = saved[name];
+            if(!data) return;
+
+            // Восстановление
+            for(let id in data) {
+                let el = document.getElementById(id);
+                if(el) {
+                    if(el.type === 'checkbox') el.checked = data[id];
+                    else el.value = data[id];
+                }
+            }
+            if(data['currentTextAlign']) {
+                currentTextAlign = data['currentTextAlign'];
+                alignButtons.forEach(b => {
+                    if(b.getAttribute('data-align') === currentTextAlign) b.click();
+                });
+            }
+            customFontFamilyName = data['customFontFamilyName'] || null;
+            
+            ['textColor', 'textColor2', 'strokeColor', 'strokeColor2', 'shadowColor', 'glowColor', 'bgColor'].forEach(id => {
+                if(data[id]) {
+                    document.getElementById(id).value = data[id];
+                    document.getElementById(id+'Preview').style.backgroundColor = data[id];
+                }
+            });
+
+            renderStudio();
+        });
+
+        document.getElementById('deletePresetBtn').addEventListener('click', () => {
+            const name = document.getElementById('presetSelect').value;
+            if(name === 'default') return;
+            if(confirm(`Удалить пресет "${name}"?`)) {
+                let saved = JSON.parse(localStorage.getItem('f2p_presets') || '{}');
+                delete saved[name];
+                localStorage.setItem('f2p_presets', JSON.stringify(saved));
+                loadPresetsList();
+            }
+        });
+
+        function loadPresetsList() {
+            const select = document.getElementById('presetSelect');
+            select.innerHTML = '<option value="default">Выберите сохраненный пресет...</option>';
+            let saved = JSON.parse(localStorage.getItem('f2p_presets') || '{}');
+            for(let name in saved) {
+                let opt = document.createElement('option');
+                opt.value = name;
+                opt.textContent = name;
+                select.appendChild(opt);
+            }
+        }
+
+        // СКАЧИВАНИЕ И КОПИРОВАНИЕ В БУФЕР ОБМЕНА
+        document.getElementById('downloadBtn').addEventListener('click', () => {
+            const format = exportFormatSelect.value;
+            const quality = parseInt(exportQualityInput.value) / 100;
+            const dataUrl = canvas.toDataURL(format, quality);
+            
+            const link = document.createElement('a');
+            let baseName = textInput.value.trim().split('\n')[0].replace(/[^a-z0-9а-яё\-_ ]/gi, '_');
+            if(!baseName) baseName = 'ultra_pro_font';
+            
+            let ext = 'png';
+            if(format === 'image/jpeg') ext = 'jpg';
+            if(format === 'image/webp') ext = 'webp';
+
+            link.download = `${baseName}.${ext}`;
+            link.href = dataUrl;
+            link.click();
+        });
+
+        document.getElementById('copyClipboardBtn').addEventListener('click', () => {
+            canvas.toBlob((blob) => {
+                if(!blob) return;
+                try {
+                    navigator.clipboard.write([
+                        new ClipboardItem({ [blob.type]: blob })
+                    ]);
+                    alert('Изображение успешно скопировано в буфер обмена!');
+                } catch (err) {
+                    alert('Ваш браузер заблокировал прямой экспорт в буфер. Пожалуйста, используйте кнопку "Скачать".');
+                }
+            }, exportFormatSelect.value, parseInt(exportQualityInput.value) / 100);
+        });
+    </script>
+</body>
+</html>
