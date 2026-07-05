@@ -4,7 +4,7 @@
 
 Идеально подходит для создания игровых ассетов, текстур, кастомных заголовков, UI-элементов и стилизованных надписей прямо на мобильном устройстве.
 
-[![Доступно в RuStore](https://shields.io)](https://rustore.ru)
+[![Доступно в RuStore](https://shields.io)](https://www.rustore.ru/catalog/app/com.dev.font2png)
 
 ---
 
