@@ -34,3 +34,4 @@
 
 ## 📄 Лицензия
 Проект распространяется под лицензией MIT.
+👉 [Лицензия](https://github.com/Oleg-Brysin2010/Font2Png/blob/main/LICENSE) 
