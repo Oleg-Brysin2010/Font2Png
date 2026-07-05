@@ -44,7 +44,7 @@
 
 Приложение доступно для скачивания в официальном магазине приложений **RuStore**:
 
-👉 [Скачать Font2PNG в RuStore](https://rustore.ru)
+👉 [Скачать Font2PNG в RuStore](https://www.rustore.ru/catalog/app/com.dev.font2png)
 
 ---
 
